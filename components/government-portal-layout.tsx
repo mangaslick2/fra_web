@@ -26,7 +26,9 @@ import {
   Shield,
   Building2,
   Bell,
-  Search
+  Search,
+  Building,
+  Layers
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { audioService } from '@/lib/audio-service'
@@ -59,7 +61,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'डैशबोर्ड',
     icon: Home,
     href: '/',
-    roles: ['admin', 'employee', 'field_officer']
+    roles: [] // Public access
   },
   {
     id: 'map',
@@ -67,7 +69,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'FRA नक्शा',
     icon: Map,
     href: '/map',
-    roles: ['admin', 'employee', 'field_officer']
+    roles: [] // Public access
   },
   {
     id: 'claims',
@@ -75,7 +77,31 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'दावे',
     icon: FileText,
     href: '/claims',
-    roles: ['admin', 'employee', 'field_officer']
+    roles: [] // Public access
+  },
+  {
+    id: 'assets',
+    label: 'Assets',
+    labelHi: 'संपत्ति',
+    icon: Building,
+    href: '/assets',
+    roles: [] // Public access
+  },
+  {
+    id: 'asset-maps',
+    label: 'Asset Maps',
+    labelHi: 'संपत्ति मानचित्र',
+    icon: Layers,
+    href: '/asset-maps',
+    roles: [] // Public access
+  },
+  {
+    id: 'gram-sabha',
+    label: 'Gram Sabha',
+    labelHi: 'ग्राम सभा',
+    icon: Building2,
+    href: '/gram-sabha',
+    roles: [] // Public access
   },
   {
     id: 'new-claim',
@@ -83,7 +109,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'नया दावा',
     icon: FolderCheck,
     href: '/claims/new',
-    roles: ['employee', 'field_officer']
+    roles: ['employee', 'field_officer'] // Requires auth for creation
   },
   {
     id: 'my-claims',
@@ -91,7 +117,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'मेरे दावे',
     icon: FolderCheck,
     href: '/my-claims',
-    roles: ['employee', 'field_officer']
+    roles: ['employee', 'field_officer'] // Requires auth for personal claims
   },
   {
     id: 'dss',
@@ -99,7 +125,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'DSS पैनल',
     icon: BarChart3,
     href: '/dss',
-    roles: ['admin', 'employee']
+    roles: [] // Public access to view recommendations
   },
   {
     id: 'admin',
@@ -107,7 +133,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'एडमिन पैनल',
     icon: Users,
     href: '/admin',
-    roles: ['admin']
+    roles: ['admin'] // Admin only
   },
   {
     id: 'help',
@@ -115,7 +141,7 @@ const navigationItems: NavigationItem[] = [
     labelHi: 'सहायता',
     icon: HelpCircle,
     href: '/help',
-    roles: ['admin', 'employee', 'field_officer']
+    roles: [] // Public access
   }
 ]
 
@@ -184,8 +210,16 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
     }
   }
 
-  // Show all navigation items for browsing, authentication is handled at action level
-  const filteredNavItems = navigationItems
+  // Show all navigation items - public items (no roles) are always visible,
+  // private items only visible to authenticated users with appropriate roles
+  const filteredNavItems = navigationItems.filter(item => {
+    // If no roles specified, item is public and always visible
+    if (!item.roles || item.roles.length === 0) {
+      return true
+    }
+    // If roles specified, only show to authenticated users with matching roles
+    return isAuthenticated && user && item.roles.includes(user.role)
+  })
 
   const isMapPage = pathname === '/map'
 

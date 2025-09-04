@@ -12,8 +12,9 @@ const nextConfig = {
     unoptimized: true,
     domains: ['localhost', 'your-satellite-data-api.com'],
   },
+  // Disable experimental CSS optimization that causes critters module error
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true,
   },
 }
 
