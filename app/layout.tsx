@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { AuthSystem } from "@/components/auth-system"
 import { GovernmentPortalLayout } from "@/components/government-portal-layout"
+import { LanguageProvider } from "@/contexts/language-context"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -48,11 +49,13 @@ export default function RootLayout({
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
           </div>
         }>
-          <AuthSystem>
-            <GovernmentPortalLayout>
-              {children}
-            </GovernmentPortalLayout>
-          </AuthSystem>
+          <LanguageProvider>
+            <AuthSystem>
+              <GovernmentPortalLayout>
+                {children}
+              </GovernmentPortalLayout>
+            </AuthSystem>
+          </LanguageProvider>
         </Suspense>
         <Analytics />
       </body>

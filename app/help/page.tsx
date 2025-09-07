@@ -1,9 +1,9 @@
-import { HelpTraining } from "@/components/help-training"
+import EnhancedHelpPage from "@/components/enhanced-help-page"
 
 export default function HelpPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <HelpTraining />
+      <EnhancedHelpPage />
     </div>
   )
 }

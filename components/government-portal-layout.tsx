@@ -33,6 +33,7 @@ import {
 import { cn } from '@/lib/utils'
 import { audioService } from '@/lib/audio-service'
 import { AuthContext } from '@/components/auth-system'
+import { useLanguage } from '@/contexts/language-context'
 
 interface User {
   id: string
@@ -149,11 +150,11 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { user, isAuthenticated, logout, requireAuth } = useContext(AuthContext)
+  const { language, toggleLanguage } = useLanguage()
   
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isOnline, setIsOnline] = useState(true)
   const [voiceEnabled, setVoiceEnabled] = useState(false)
-  const [language, setLanguage] = useState<'en' | 'hi'>('en')
   const [notifications, setNotifications] = useState(0)
 
   useEffect(() => {
@@ -221,15 +222,10 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
     return isAuthenticated && user && item.roles.includes(user.role)
   })
 
-  const isMapPage = pathname === '/map'
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Government Portal Header - Always visible except on map page mobile */}
-      <header className={cn(
-        "bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40",
-        isMapPage && "hidden md:block" // Hide on mobile for map page, show on desktop
-      )}>
+      {/* Government Portal Header - Always visible */}
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 h-16">
           {/* Left section */}
           <div className="flex items-center gap-4">
@@ -339,7 +335,7 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
+                      onClick={toggleLanguage}
                       className="text-xs"
                     >
                       {language === 'hi' ? 'हिंदी' : 'English'}
@@ -421,6 +417,16 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
               )}
             </Button>
 
+            {/* Language Toggle - Global */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleLanguage}
+              className="hidden sm:flex text-xs px-2"
+            >
+              {language === 'hi' ? 'हिंदी' : 'English'}
+            </Button>
+
             {/* User Info (desktop) or Login Button */}
             {isAuthenticated && user ? (
               <div className="hidden md:flex items-center gap-2 ml-4">
@@ -447,24 +453,7 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
 
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
-        <div className={cn(
-          "fixed left-0 w-64 h-full bg-white border-r border-gray-200 overflow-y-auto z-30",
-          isMapPage ? "top-0" : "top-16"
-        )}>
-          {isMapPage && (
-            <div className="p-4 border-b bg-green-50">
-              <div className="flex items-center gap-3 mb-2">
-                <TreePine className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-sm">Forest Rights Portal</span>
-              </div>
-              {user && (
-                <div className="text-xs text-gray-600">
-                  {user.name} • {user.designation}
-                </div>
-              )}
-            </div>
-          )}
-          
+        <div className="fixed left-0 w-64 h-full bg-white border-r border-gray-200 overflow-y-auto z-30 top-16">
           <nav className="p-4 space-y-1">
             {filteredNavItems.map((item) => {
               const Icon = item.icon
@@ -496,19 +485,14 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Main Content */}
-      <main className={cn(
-        "min-h-screen",
-        isMapPage ? "" : "md:ml-64", // No margin for map page
-        isMapPage ? "" : "pt-0" // No padding top for map page
-      )}>
+      <main className="min-h-screen md:ml-64 pt-0">
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation - Only show when not on map page */}
-      {!isMapPage && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-          <nav className="flex items-center justify-around py-2">
-            {filteredNavItems.slice(0, 5).map((item) => {
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
+        <nav className="flex items-center justify-around py-2">
+          {filteredNavItems.slice(0, 5).map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
               return (
@@ -530,10 +514,9 @@ export function GovernmentPortalLayout({ children }: { children: ReactNode }) {
             })}
           </nav>
         </div>
-      )}
 
       {/* Bottom spacing for mobile navigation */}
-      {!isMapPage && <div className="h-20 md:h-0" />}
+      <div className="h-20 md:h-0" />
     </div>
   )
 }

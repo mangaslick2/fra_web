@@ -346,7 +346,7 @@ export function AdvancedMapInterface() {
   }
 
   return (
-    <div className="relative w-full h-screen">
+    <div className="relative w-full" style={{ height: 'calc(100vh - 8rem)' }}>
       {/* Network Status */}
       <div className="absolute top-4 right-4 z-[1000]">
         <Badge variant={isOnline ? "default" : "destructive"} className="flex items-center gap-2">

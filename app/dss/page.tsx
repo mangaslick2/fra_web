@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { AdvancedDSSDashboard } from "@/components/advanced-dss-dashboard"
+import EnhancedDSSPage from "@/components/enhanced-dss-page"
 
 export default function DSSPage() {
   return (
@@ -14,7 +14,7 @@ export default function DSSPage() {
           </div>
         }
       >
-        <AdvancedDSSDashboard />
+        <EnhancedDSSPage />
       </Suspense>
     </div>
   )

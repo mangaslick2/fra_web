@@ -1,5 +1,5 @@
-import WelcomePageMobile from '@/components/welcome-page-mobile'
+import EnhancedHomePage from '@/components/enhanced-home-page'
 
 export default function Page() {
-  return <WelcomePageMobile />
+  return <EnhancedHomePage />
 }
