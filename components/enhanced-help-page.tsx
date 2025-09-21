@@ -341,7 +341,7 @@ export default function EnhancedHelpPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <BookOpen className="w-8 h-8 text-blue-600 mx-auto mb-2" />
@@ -373,7 +373,7 @@ export default function EnhancedHelpPage() {
             <p className="text-sm text-gray-600">User Satisfaction</p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Main Content */}
       <Tabs defaultValue="articles" className="w-full">

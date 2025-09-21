@@ -89,14 +89,6 @@ const navigationItems: NavigationItem[] = [
     roles: [] // Public access
   },
   {
-    id: 'asset-maps',
-    label: 'Asset Maps',
-    labelHi: 'संपत्ति मानचित्र',
-    icon: Layers,
-    href: '/asset-maps',
-    roles: [] // Public access
-  },
-  {
     id: 'gram-sabha',
     label: 'Gram Sabha',
     labelHi: 'ग्राम सभा',

@@ -1,5 +1,5 @@
-import EnhancedAssetsPage from "@/components/enhanced-assets-page"
+import UnifiedAssetsPage from "@/components/unified-assets-page"
 
 export default function AssetsPage() {
-  return <EnhancedAssetsPage />
+  return <UnifiedAssetsPage />
 }
