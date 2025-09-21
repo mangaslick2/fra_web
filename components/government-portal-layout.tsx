@@ -58,7 +58,7 @@ interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   {
     id: 'home',
-    label: 'Dashboard',
+    label: 'HOME',
     labelHi: 'डैशबोर्ड',
     icon: Home,
     href: '/',
