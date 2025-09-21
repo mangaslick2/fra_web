@@ -28,6 +28,10 @@ interface AssetMapViewProps {
   searchTerm: string
   statusFilter: string
   typeFilter: string
+  selectedAssetId?: string | null
+  highlightedAssetId?: string | null
+  onAssetSelect?: (assetId: string) => void
+  onAssetHighlight?: (assetId: string | null) => void
 }
 
 interface DSS_Index {
@@ -37,11 +41,22 @@ interface DSS_Index {
   description: string
 }
 
-export function AssetMapView({ assets, searchTerm, statusFilter, typeFilter }: AssetMapViewProps) {
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
+export function AssetMapView({ 
+  assets, 
+  searchTerm, 
+  statusFilter, 
+  typeFilter,
+  selectedAssetId,
+  highlightedAssetId,
+  onAssetSelect,
+  onAssetHighlight 
+}: AssetMapViewProps) {
   const [showDSSIndices, setShowDSSIndices] = useState(false)
   const [confidenceThreshold, setConfidenceThreshold] = useState([70])
   const [activeLayer, setActiveLayer] = useState<string>("all")
+  
+  // Find selected asset from props
+  const selectedAsset = assets.find(asset => asset.id === selectedAssetId) || null
 
   const dssIndices: DSS_Index[] = [
     { name: "Water Index", value: 65, color: "bg-blue-500", description: "Water availability and quality" },
@@ -144,19 +159,27 @@ export function AssetMapView({ assets, searchTerm, statusFilter, typeFilter }: A
 
                 {/* Asset Markers */}
                 {filteredAssets.map((asset, index) => (
-                  <button
+                  <div
                     key={asset.id}
-                    onClick={() => setSelectedAsset(selectedAsset?.id === asset.id ? null : asset)}
-                    className={`absolute w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 ${getMarkerColor(asset.type)}`}
+                    onClick={() => onAssetSelect?.(asset.id)}
+                    onMouseEnter={() => onAssetHighlight?.(asset.id)}
+                    onMouseLeave={() => onAssetHighlight?.(null)}
+                    className={`absolute w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 cursor-pointer ${
+                      getMarkerColor(asset.type)
+                    } ${
+                      selectedAssetId === asset.id ? 'scale-125 ring-2 ring-blue-400' : ''
+                    } ${
+                      highlightedAssetId === asset.id ? 'animate-pulse' : ''
+                    }`}
                     style={{
                       left: `${15 + (index % 8) * 10}%`,
                       top: `${20 + Math.floor(index / 8) * 12}%`,
-                      transform: selectedAsset?.id === asset.id ? 'scale(1.2)' : 'scale(1)',
+                      transform: selectedAssetId === asset.id ? 'scale(1.2)' : 'scale(1)',
                     }}
                     title={`${asset.name} - ${asset.claimantName}`}
                   >
                     {getAssetIcon(asset.type)}
-                  </button>
+                  </div>
                 ))}
 
                 {/* Asset Details Popup */}

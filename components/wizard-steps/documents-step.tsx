@@ -3,8 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Upload, FileText, Camera, Mic, CheckCircle, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { Upload, FileText, Camera, Mic, CheckCircle, Loader2, Wand2 } from "lucide-react"
+import { useState, useRef } from "react"
+import { nerService, ExtractedEntities } from "@/lib/ner-service"
+import { useToast } from "@/hooks/use-toast"
 
 interface DocumentsStepProps {
   data: any
@@ -15,6 +17,8 @@ export function DocumentsStep({ data, updateData }: DocumentsStepProps) {
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null)
   const [ocrProcessing, setOcrProcessing] = useState<string | null>(null)
   const [recording, setRecording] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
 
   const requiredDocs = [
     {
@@ -39,6 +43,54 @@ export function DocumentsStep({ data, updateData }: DocumentsStepProps) {
       uploaded: false,
     },
   ]
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleFileUpload = async (file: File) => {
+    setOcrProcessing(file.name)
+    try {
+      const extractedData = await nerService.extractEntitiesFromFile(file)
+
+      // Update the main claim data with extracted entities
+      const updates: Partial<any> = {}
+      if (extractedData.claimantName) updates.claimantName = extractedData.claimantName
+      if (extractedData.fatherName) updates.fatherName = extractedData.fatherName
+      if (extractedData.address) updates.address = extractedData.address
+      if (extractedData.village) updates.village = extractedData.village
+      if (extractedData.district) updates.district = extractedData.district
+      if (extractedData.block) updates.block = extractedData.block
+      updateData(updates)
+
+      // Add the document to the list
+      const newDocument = {
+        id: file.name,
+        name: file.name,
+        file: file,
+        ocrData: extractedData,
+      }
+      const updatedDocs = [...(data.documents || []), newDocument]
+      updateData({ documents: updatedDocs })
+
+      toast({
+        title: "AI Analysis Complete",
+        description: "Information has been automatically extracted from your document.",
+      })
+    } catch (error) {
+      console.error("NER processing failed:", error)
+      toast({
+        title: "AI Analysis Failed",
+        description: "Could not extract information from the document. Please enter it manually.",
+        variant: "destructive",
+      })
+    } finally {
+      setOcrProcessing(null)
+    }
+  }
 
   const captureDocument = (docId: string) => {
     setUploadingDoc(docId)
@@ -89,6 +141,40 @@ export function DocumentsStep({ data, updateData }: DocumentsStepProps) {
         <h3 className="text-xl font-semibold text-slate-700 mb-4">Scan Documents</h3>
         <p className="text-slate-600">Take photos of your supporting documents</p>
       </div>
+
+      {/* AI-Powered Digitization Card */}
+      <Card className="bg-purple-50 border-purple-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-900">
+            <Wand2 className="h-5 w-5" />
+            AI-Powered Digitization
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-purple-800 mb-4">
+            Upload a document (like an Aadhaar card or land record) and our AI will automatically fill in the details
+            for you.
+          </p>
+          <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,.pdf" />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!!ocrProcessing}
+            className="w-full h-16 text-lg bg-purple-600 hover:bg-purple-700"
+          >
+            {ocrProcessing ? (
+              <>
+                <Loader2 className="h-6 w-6 mr-2 animate-spin" />
+                Analyzing Document...
+              </>
+            ) : (
+              <>
+                <Upload className="h-6 w-6 mr-2" />
+                Upload and Analyze Document
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Audio Testimony Card */}
       <Card className="bg-orange-50 border-orange-200">
@@ -210,7 +296,7 @@ export function DocumentsStep({ data, updateData }: DocumentsStepProps) {
                       <p className="text-xs text-slate-500 mb-1">OCR Extracted Data:</p>
                       <div className="text-sm space-y-1">
                         <p>
-                          <strong>Name:</strong> {data.documents.find((d: any) => d.id === doc.id).ocrData.name}
+                          <strong>Name:</strong> {data.documents.find((d: any) => d.id === doc.id).ocrData.claimantName}
                         </p>
                         <p>
                           <strong>Father's Name:</strong>{" "}
@@ -218,6 +304,15 @@ export function DocumentsStep({ data, updateData }: DocumentsStepProps) {
                         </p>
                         <p>
                           <strong>Address:</strong> {data.documents.find((d: any) => d.id === doc.id).ocrData.address}
+                        </p>
+                        <p>
+                          <strong>Village:</strong> {data.documents.find((d: any) => d.id === doc.id).ocrData.village}
+                        </p>
+                        <p>
+                          <strong>District:</strong> {data.documents.find((d: any) => d.id === doc.id).ocrData.district}
+                        </p>
+                        <p>
+                          <strong>Block:</strong> {data.documents.find((d: any) => d.id === doc.id).ocrData.block}
                         </p>
                       </div>
                     </div>

@@ -34,7 +34,9 @@ import {
   RotateCcw,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Minus,
 } from 'lucide-react'
 import { audioService, AudioRecording } from '@/lib/audio-service'
 import { offlineService, OfflineClaim } from '@/lib/offline-service'
@@ -126,6 +128,21 @@ const WIZARD_STEPS: WizardStep[] = [
   }
 ]
 
+// Custom hook for responsive design
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+  return isMobile;
+};
+
+
 export function MobileClaimWizard() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
@@ -158,6 +175,7 @@ export function MobileClaimWizard() {
 
   const webcamRef = useRef<Webcam>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     // Network status monitoring
@@ -380,10 +398,10 @@ export function MobileClaimWizard() {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-2xl font-bold">
                 {language === 'hi' ? step.titleHi : step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 {language === 'hi' ? step.descriptionHi : step.description}
               </p>
             </div>
@@ -396,22 +414,22 @@ export function MobileClaimWizard() {
               ].map((type) => (
                 <Card 
                   key={type.id}
-                  className={`cursor-pointer transition-all ${
-                    claimType === type.id ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-gray-50'
+                  className={`cursor-pointer transition-all p-2 ${
+                    claimType === type.id ? 'ring-4 ring-primary bg-primary/10' : 'hover:bg-gray-100'
                   }`}
                   onClick={() => setClaimType(type.id as any)}
                 >
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="text-3xl">{type.icon}</div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-5xl">{type.icon}</div>
                       <div className="flex-1">
-                        <h4 className="font-medium">
+                        <h4 className="font-semibold text-xl">
                           {language === 'hi' ? type.nameHi : type.name}
                         </h4>
-                        <p className="text-sm text-gray-600">{type.desc}</p>
+                        <p className="text-base text-gray-600">{type.desc}</p>
                       </div>
                       {claimType === type.id && (
-                        <CheckCircle className="w-6 h-6 text-primary" />
+                        <CheckCircle className="w-8 h-8 text-primary" />
                       )}
                     </div>
                   </CardContent>
@@ -425,10 +443,10 @@ export function MobileClaimWizard() {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-2xl font-bold">
                 {language === 'hi' ? step.titleHi : step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 {language === 'hi' ? step.descriptionHi : step.description}
               </p>
             </div>
@@ -454,15 +472,15 @@ export function MobileClaimWizard() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Button onClick={() => setShowCamera(true)} className="h-20 flex-col">
-                    <Camera className="w-8 h-8 mb-2" />
-                    Camera
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Button onClick={() => setShowCamera(true)} className="h-28 flex-col text-xl">
+                    <Camera className="w-10 h-10 mb-2" />
+                    Take Photo
                   </Button>
-                  <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="h-20 flex-col">
-                    <Upload className="w-8 h-8 mb-2" />
-                    Upload
+                  <Button onClick={() => fileInputRef.current?.click()} variant="outline" className="h-28 flex-col text-xl">
+                    <Upload className="w-10 h-10 mb-2" />
+                    Upload File
                   </Button>
                 </div>
                 
@@ -511,25 +529,25 @@ export function MobileClaimWizard() {
 
       case 3:
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-2xl font-bold">
                 {language === 'hi' ? step.titleHi : step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 {language === 'hi' ? step.descriptionHi : step.description}
               </p>
             </div>
 
-            <div className="space-y-4">
-              <Button onClick={captureLocation} className="w-full h-16" disabled={!!location}>
-                <MapPin className="w-6 h-6 mr-2" />
-                {location ? 'Location Captured' : 'Capture GPS Location'}
+            <div className="space-y-6">
+              <Button onClick={captureLocation} className="w-full h-20 text-xl" disabled={!!location}>
+                <MapPin className="w-8 h-8 mr-4" />
+                {location ? 'Location Captured!' : 'Capture GPS Location'}
               </Button>
 
               {location && (
-                <Alert>
-                  <MapPin className="h-4 w-4" />
+                <Alert className="text-base">
+                  <MapPin className="h-5 w-5" />
                   <AlertDescription>
                     Location: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
                     <br />
@@ -545,80 +563,85 @@ export function MobileClaimWizard() {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-2xl font-bold">
                 {language === 'hi' ? step.titleHi : step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 {language === 'hi' ? step.descriptionHi : step.description}
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name / नाम *</Label>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="name" className="text-lg">Name / नाम *</Label>
                 <Input
                   id="name"
                   value={claimantDetails.name}
                   onChange={(e) => setClaimantDetails(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter your full name"
+                  className="h-14 text-lg"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="fatherName">Father's Name / पिता का नाम</Label>
+              <div className="space-y-3">
+                <Label htmlFor="fatherName" className="text-lg">Father's Name / पिता का नाम</Label>
                 <Input
                   id="fatherName"
                   value={claimantDetails.fatherName}
                   onChange={(e) => setClaimantDetails(prev => ({ ...prev, fatherName: e.target.value }))}
                   placeholder="Enter father's name"
+                  className="h-14 text-lg"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Address / पता *</Label>
+              <div className="space-y-3">
+                <Label htmlFor="address" className="text-lg">Address / पता *</Label>
                 <Textarea
                   id="address"
                   value={claimantDetails.address}
                   onChange={(e) => setClaimantDetails(prev => ({ ...prev, address: e.target.value }))}
                   placeholder="Enter your full address"
-                  rows={3}
+                  rows={4}
+                  className="text-lg"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number / फोन नंबर</Label>
+              <div className="space-y-3">
+                <Label htmlFor="phone" className="text-lg">Phone Number / फोन नंबर</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={claimantDetails.phone}
                   onChange={(e) => setClaimantDetails(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="Enter 10-digit mobile number"
+                  className="h-14 text-lg"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="aadhar">Aadhar Number / आधार नंबर</Label>
+              <div className="space-y-3">
+                <Label htmlFor="aadhar" className="text-lg">Aadhar Number / आधार नंबर</Label>
                 <Input
                   id="aadhar"
                   value={claimantDetails.aadhar}
                   onChange={(e) => setClaimantDetails(prev => ({ ...prev, aadhar: e.target.value }))}
                   placeholder="Enter 12-digit Aadhar number"
+                  className="h-14 text-lg"
                 />
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-4 pt-4">
                 <Button
                   onClick={isRecording ? stopRecording : startRecording}
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 h-16 text-lg"
                 >
-                  {isRecording ? <MicOff className="w-4 h-4 mr-2" /> : <Mic className="w-4 h-4 mr-2" />}
-                  {isRecording ? 'Stop Recording' : 'Record Details'}
+                  {isRecording ? <MicOff className="w-6 h-6 mr-2" /> : <Mic className="w-6 h-6 mr-2" />}
+                  {isRecording ? 'Stop' : 'Record'}
                 </Button>
                 
                 {currentRecording && (
-                  <Button onClick={() => audioService.playRecording(currentRecording.blob)} variant="outline">
-                    <Play className="w-4 h-4" />
+                  <Button onClick={() => audioService.playRecording(currentRecording.blob)} variant="outline" className="h-16">
+                    <Play className="w-6 h-6" />
                   </Button>
                 )}
               </div>
@@ -630,38 +653,40 @@ export function MobileClaimWizard() {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-2xl font-bold">
                 {language === 'hi' ? step.titleHi : step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 {language === 'hi' ? step.descriptionHi : step.description}
               </p>
               <Badge variant="secondary">Optional</Badge>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="meetingDate">Meeting Date / बैठक की तारीख</Label>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="meetingDate" className="text-lg">Meeting Date / बैठक की तारीख</Label>
                 <Input
                   id="meetingDate"
                   type="date"
                   value={gramSabhaConsent.meetingDate}
                   onChange={(e) => setGramSabhaConsent(prev => ({ ...prev, meetingDate: e.target.value }))}
+                  className="h-14 text-lg"
                 />
               </div>
 
-              <Button onClick={() => setShowCamera(true)} variant="outline" className="w-full">
-                <Camera className="w-4 h-4 mr-2" />
+              <Button onClick={() => setShowCamera(true)} variant="outline" className="w-full h-16 text-lg">
+                <Camera className="w-6 h-6 mr-2" />
                 Upload Meeting Minutes Photo
               </Button>
 
-              <div className="space-y-2">
-                <Label htmlFor="qrCode">QR Code / QR कोड</Label>
+              <div className="space-y-3">
+                <Label htmlFor="qrCode" className="text-lg">QR Code / QR कोड</Label>
                 <Input
                   id="qrCode"
                   value={gramSabhaConsent.qrCode}
                   onChange={(e) => setGramSabhaConsent(prev => ({ ...prev, qrCode: e.target.value }))}
                   placeholder="Scan or enter QR code"
+                  className="h-14 text-lg"
                 />
               </div>
             </div>
@@ -672,10 +697,10 @@ export function MobileClaimWizard() {
         return (
           <div className="space-y-6">
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-semibold">
+              <h3 className="text-2xl font-bold">
                 {language === 'hi' ? step.titleHi : step.title}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 {language === 'hi' ? step.descriptionHi : step.description}
               </p>
             </div>
@@ -775,33 +800,33 @@ export function MobileClaimWizard() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
-        <div className="max-w-lg mx-auto flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 shadow-inner">
+        <div className="max-w-lg mx-auto flex gap-4">
           <Button
             variant="outline"
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="flex-1"
+            className="flex-1 h-16 text-xl"
           >
-            <ChevronLeft className="w-4 h-4 mr-2" />
-            Previous
+            <ChevronLeft className="w-6 h-6 mr-2" />
+            Back
           </Button>
           
           {currentStep === WIZARD_STEPS.length ? (
             <Button
               onClick={saveOfflineClaim}
               disabled={!validateStep(currentStep) || isSaving}
-              className="flex-1"
+              className="flex-1 h-16 text-xl"
             >
               {isSaving ? (
                 <>
-                  <Save className="w-4 h-4 mr-2 animate-spin" />
+                  <Save className="w-6 h-6 mr-2 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Submit Claim
+                  <CheckCircle className="w-6 h-6 mr-2" />
+                  Submit
                 </>
               )}
             </Button>
@@ -809,10 +834,10 @@ export function MobileClaimWizard() {
             <Button
               onClick={nextStep}
               disabled={!validateStep(currentStep)}
-              className="flex-1"
+              className="flex-1 h-16 text-xl"
             >
               Next
-              <ChevronRight className="w-4 h-4 ml-2" />
+              <ChevronRight className="w-6 h-6 ml-2" />
             </Button>
           )}
         </div>

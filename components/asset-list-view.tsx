@@ -60,6 +60,9 @@ interface AssetListViewProps {
   setStatusFilter: (status: string) => void
   typeFilter: string
   setTypeFilter: (type: string) => void
+  selectedAssetId?: string | null
+  onAssetSelect?: (assetId: string) => void
+  onAssetHighlight?: (assetId: string | null) => void
 }
 
 export function AssetListView({
@@ -69,7 +72,10 @@ export function AssetListView({
   statusFilter,
   setStatusFilter,
   typeFilter,
-  setTypeFilter
+  setTypeFilter,
+  selectedAssetId,
+  onAssetSelect,
+  onAssetHighlight
 }: AssetListViewProps) {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -160,7 +166,15 @@ export function AssetListView({
       {/* Assets Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredAssets.map((asset) => (
-          <Card key={asset.id} className="hover:shadow-md transition-shadow">
+          <Card 
+            key={asset.id} 
+            className={`hover:shadow-md transition-shadow cursor-pointer ${
+              selectedAssetId === asset.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+            }`}
+            onClick={() => onAssetSelect?.(asset.id)}
+            onMouseEnter={() => onAssetHighlight?.(asset.id)}
+            onMouseLeave={() => onAssetHighlight?.(null)}
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

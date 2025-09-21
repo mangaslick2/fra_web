@@ -13,6 +13,8 @@ import { LocationStep } from "@/components/wizard-steps/location-step"
 import { ClaimantDetailsStep } from "@/components/wizard-steps/claimant-details-step"
 import { GramSabhaStep } from "@/components/wizard-steps/gram-sabha-step"
 import { ReviewStep } from "@/components/wizard-steps/review-step"
+import { offlineService, OfflineClaim } from "@/lib/offline-service"
+import { useToast } from "@/hooks/use-toast"
 
 interface ClaimData {
   claimType: string
@@ -48,6 +50,8 @@ const steps = [
 
 export function ClaimWizard() {
   const [currentStep, setCurrentStep] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
   const [claimData, setClaimData] = useState<ClaimData>({
     claimType: "",
     documents: [],
@@ -79,6 +83,106 @@ export function ClaimWizard() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
     }
+  }
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    try {
+      // 1. Convert ClaimData to OfflineClaim format
+      const documentsForOffline = await Promise.all(
+        claimData.documents.map(async (file) => ({
+          id: `doc_${Date.now()}_${file.name}`,
+          type: file.type,
+          filename: file.name,
+          blob: file,
+          checksum: await generateChecksum(file), // You'll need a checksum function
+        }))
+      )
+
+      const audioRecordingsForOffline = claimData.audioTestimony
+        ? [
+            {
+              id: `audio_${Date.now()}`,
+              type: "testimony" as const,
+              blob: claimData.audioTestimony,
+              duration: 0, // You might need to calculate this
+            },
+          ]
+        : []
+
+      const offlineClaim: Partial<OfflineClaim> = {
+        claimType: claimData.claimType as OfflineClaim['claimType'],
+        claimantDetails: {
+          name: claimData.claimantName,
+          fatherName: claimData.fatherName,
+          address: claimData.address,
+          phone: claimData.phone,
+        },
+        documents: documentsForOffline,
+        location: {
+          latitude: claimData.location?.lat ?? 0,
+          longitude: claimData.location?.lng ?? 0,
+          polygon: claimData.boundaries,
+        },
+        audioRecordings: audioRecordingsForOffline,
+        gramSabhaConsent: {
+          minutesPhoto: claimData.gramSabhaConsent ?? undefined,
+          qrCode: claimData.gramSabhaQR,
+        },
+        status: 'ready', // Ready to be synced
+      }
+
+      // 2. Save to offline service
+      const savedId = await offlineService.saveClaim(offlineClaim)
+
+      // 3. Give user feedback
+      toast({
+        title: "Claim Saved Offline",
+        description: `Your claim (ID: ${savedId}) has been saved. It will be uploaded automatically when you're online.`,
+      })
+
+      // 4. Reset or redirect
+      // For now, let's just go back to the first step
+      setCurrentStep(0)
+      setClaimData({
+        claimType: "",
+        documents: [],
+        location: null,
+        boundaries: [],
+        claimantName: "",
+        fatherName: "",
+        address: "",
+        district: "",
+        block: "",
+        village: "",
+        phone: "",
+        gramSabhaConsent: null,
+        gramSabhaQR: "",
+        audioTestimony: null,
+      })
+    } catch (error) {
+      console.error("Failed to save claim offline", error)
+      toast({
+        title: "Error Saving Claim",
+        description: "Could not save your claim locally. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const isClaimDataValid = () => {
+    // Add more comprehensive validation as needed
+    return !!(claimData.claimType && claimData.claimantName && claimData.location);
+  }
+
+  // Helper to generate a checksum (example)
+  const generateChecksum = async (file: File): Promise<string> => {
+    const buffer = await file.arrayBuffer()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
   }
 
   const progress = ((currentStep + 1) / steps.length) * 100
@@ -189,11 +293,17 @@ export function ClaimWizard() {
             </div>
 
             <Button
-              onClick={nextStep}
-              disabled={currentStep === steps.length - 1}
+              onClick={currentStep === steps.length - 1 ? handleSubmit : nextStep}
+              disabled={isSubmitting || (currentStep === steps.length - 1 && !isClaimDataValid())}
               className="flex items-center gap-2 h-10"
             >
-              {currentStep === steps.length - 1 ? "Submit Claim" : "Next"}
+              {isSubmitting ? (
+                "Saving..."
+              ) : currentStep === steps.length - 1 ? (
+                "Save Claim Offline"
+              ) : (
+                "Next"
+              )}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -211,11 +321,17 @@ export function ClaimWizard() {
                 Back
               </Button>
               <Button
-                onClick={nextStep}
-                disabled={currentStep === steps.length - 1}
+                onClick={currentStep === steps.length - 1 ? handleSubmit : nextStep}
+                disabled={isSubmitting || (currentStep === steps.length - 1 && !isClaimDataValid())}
                 className="flex-1 h-12 text-base bg-green-600 hover:bg-green-700"
               >
-                {currentStep === steps.length - 1 ? "Submit" : "Continue"}
+                {isSubmitting ? (
+                  "Saving..."
+                ) : currentStep === steps.length - 1 ? (
+                  "Save Offline"
+                ) : (
+                  "Continue"
+                )}
                 <ChevronRight className="h-5 w-5 ml-2" />
               </Button>
             </div>

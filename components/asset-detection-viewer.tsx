@@ -26,6 +26,7 @@ import Link from "next/link"
 
 interface AssetDetectionViewerProps {
   claimId: string
+  onAssetDetected?: (detectedAssets: DetectedAsset[]) => void
 }
 
 interface DetectedAsset {
@@ -37,7 +38,7 @@ interface DetectedAsset {
   verified: boolean | null
 }
 
-export function AssetDetectionViewer({ claimId }: AssetDetectionViewerProps) {
+export function AssetDetectionViewer({ claimId, onAssetDetected }: AssetDetectionViewerProps) {
   const [activeTab, setActiveTab] = useState("detection")
   const [showOverlays, setShowOverlays] = useState(true)
   const [opacity, setOpacity] = useState([70])
